@@ -67,7 +67,14 @@ function AuthPage() {
       password: siPassword,
     });
     setBusy(false);
-    if (error) return toast.error(error.message);
+    if (error) {
+      const msg = error.message?.toLowerCase() ?? "";
+      if (msg.includes("not confirmed") || msg.includes("email not confirmed")) {
+        setPendingEmail(siEmail);
+        return;
+      }
+      return toast.error(error.message);
+    }
     toast.success("Welcome back!");
     navigate({ to: "/" });
   }
@@ -75,7 +82,7 @@ function AuthPage() {
   async function handleSignUp(e: React.FormEvent) {
     e.preventDefault();
     setBusy(true);
-    const { error } = await supabase.auth.signUp({
+    const { data, error } = await supabase.auth.signUp({
       email: suEmail,
       password: suPassword,
       options: {
@@ -85,8 +92,26 @@ function AuthPage() {
     });
     setBusy(false);
     if (error) return toast.error(error.message);
+    // If email confirmation is required, no session is returned
+    if (!data.session) {
+      setPendingEmail(suEmail);
+      return;
+    }
     toast.success("Account created — you're signed in!");
     navigate({ to: "/" });
+  }
+
+  async function handleResend() {
+    if (!pendingEmail) return;
+    setBusy(true);
+    const { error } = await supabase.auth.resend({
+      type: "signup",
+      email: pendingEmail,
+      options: { emailRedirectTo: window.location.origin },
+    });
+    setBusy(false);
+    if (error) return toast.error(error.message);
+    toast.success("Confirmation email sent — check your inbox.");
   }
 
   return (
