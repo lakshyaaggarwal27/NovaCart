@@ -40,6 +40,8 @@ function AuthPage() {
   const [suName, setSuName] = useState("");
   const [suEmail, setSuEmail] = useState("");
   const [suPassword, setSuPassword] = useState("");
+  // Awaiting email confirmation
+  const [pendingEmail, setPendingEmail] = useState<string | null>(null);
 
   async function handleGoogle() {
     setBusy(true);
@@ -67,7 +69,14 @@ function AuthPage() {
       password: siPassword,
     });
     setBusy(false);
-    if (error) return toast.error(error.message);
+    if (error) {
+      const msg = error.message?.toLowerCase() ?? "";
+      if (msg.includes("not confirmed") || msg.includes("email not confirmed")) {
+        setPendingEmail(siEmail);
+        return;
+      }
+      return toast.error(error.message);
+    }
     toast.success("Welcome back!");
     navigate({ to: "/" });
   }
@@ -75,7 +84,7 @@ function AuthPage() {
   async function handleSignUp(e: React.FormEvent) {
     e.preventDefault();
     setBusy(true);
-    const { error } = await supabase.auth.signUp({
+    const { data, error } = await supabase.auth.signUp({
       email: suEmail,
       password: suPassword,
       options: {
@@ -85,8 +94,26 @@ function AuthPage() {
     });
     setBusy(false);
     if (error) return toast.error(error.message);
+    // If email confirmation is required, no session is returned
+    if (!data.session) {
+      setPendingEmail(suEmail);
+      return;
+    }
     toast.success("Account created — you're signed in!");
     navigate({ to: "/" });
+  }
+
+  async function handleResend() {
+    if (!pendingEmail) return;
+    setBusy(true);
+    const { error } = await supabase.auth.resend({
+      type: "signup",
+      email: pendingEmail,
+      options: { emailRedirectTo: window.location.origin },
+    });
+    setBusy(false);
+    if (error) return toast.error(error.message);
+    toast.success("Confirmation email sent — check your inbox.");
   }
 
   return (
@@ -100,6 +127,23 @@ function AuthPage() {
           <span>Nova<span className="text-primary">Cart</span></span>
         </Link>
 
+        {pendingEmail ? (
+          <div className="rounded-2xl border bg-card p-6 shadow-card sm:p-8 text-center">
+            <h2 className="font-display text-xl font-semibold">Confirm your email</h2>
+            <p className="mt-2 text-sm text-muted-foreground">
+              We sent a confirmation link to <span className="font-medium text-foreground">{pendingEmail}</span>.
+              Click it to activate your account, then sign in.
+            </p>
+            <div className="mt-6 flex flex-col gap-2">
+              <Button onClick={handleResend} disabled={busy} className="w-full bg-gradient-primary text-primary-foreground shadow-elegant">
+                Resend confirmation email
+              </Button>
+              <Button variant="outline" onClick={() => setPendingEmail(null)} className="w-full">
+                Back to sign in
+              </Button>
+            </div>
+          </div>
+        ) : (
         <div className="rounded-2xl border bg-card p-6 shadow-card sm:p-8">
           <Tabs defaultValue="signin">
             <TabsList className="grid w-full grid-cols-2">
@@ -160,6 +204,7 @@ function AuthPage() {
             Continue with Google
           </Button>
         </div>
+        )}
 
         <p className="mt-6 text-center text-xs text-muted-foreground">
           By continuing you agree to our Terms and Privacy Policy.
