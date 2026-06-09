@@ -127,6 +127,23 @@ function AuthPage() {
           <span>Nova<span className="text-primary">Cart</span></span>
         </Link>
 
+        {pendingEmail ? (
+          <div className="rounded-2xl border bg-card p-6 shadow-card sm:p-8 text-center">
+            <h2 className="font-display text-xl font-semibold">Confirm your email</h2>
+            <p className="mt-2 text-sm text-muted-foreground">
+              We sent a confirmation link to <span className="font-medium text-foreground">{pendingEmail}</span>.
+              Click it to activate your account, then sign in.
+            </p>
+            <div className="mt-6 flex flex-col gap-2">
+              <Button onClick={handleResend} disabled={busy} className="w-full bg-gradient-primary text-primary-foreground shadow-elegant">
+                Resend confirmation email
+              </Button>
+              <Button variant="outline" onClick={() => setPendingEmail(null)} className="w-full">
+                Back to sign in
+              </Button>
+            </div>
+          </div>
+        ) : (
         <div className="rounded-2xl border bg-card p-6 shadow-card sm:p-8">
           <Tabs defaultValue="signin">
             <TabsList className="grid w-full grid-cols-2">
