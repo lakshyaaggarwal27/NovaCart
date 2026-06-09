@@ -1,9 +1,18 @@
 import { Link } from "@tanstack/react-router";
-import { Heart, Menu, Search, ShoppingBag, Sparkles, User, X } from "lucide-react";
+import { Heart, LogOut, Menu, Search, ShoppingBag, Sparkles, User, X } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useStore } from "@/lib/store";
+import { useAuth } from "@/lib/auth";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 const links = [
   { to: "/", label: "Home" },
@@ -13,6 +22,7 @@ const links = [
 
 export function Navbar() {
   const { cartCount, wishlistCount } = useStore();
+  const { user, signOut } = useAuth();
   const [open, setOpen] = useState(false);
 
   return (
@@ -78,9 +88,33 @@ export function Navbar() {
               )}
             </Button>
           </Link>
-          <Button variant="ghost" size="icon" className="hidden md:inline-flex" aria-label="Account">
-            <User className="h-5 w-5" />
-          </Button>
+          {user ? (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon" className="hidden md:inline-flex" aria-label="Account">
+                  <User className="h-5 w-5" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuLabel className="truncate max-w-[200px]">{user.email}</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem asChild>
+                  <Link to="/account">Account & shipping</Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link to="/wishlist">Wishlist</Link>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => signOut()}>
+                  <LogOut className="mr-2 h-4 w-4" /> Sign out
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          ) : (
+            <Link to="/auth" className="hidden md:inline-flex">
+              <Button variant="ghost" size="sm">Sign in</Button>
+            </Link>
+          )}
           <Button
             variant="ghost"
             size="icon"
