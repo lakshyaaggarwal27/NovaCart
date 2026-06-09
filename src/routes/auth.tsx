@@ -40,6 +40,8 @@ function AuthPage() {
   const [suName, setSuName] = useState("");
   const [suEmail, setSuEmail] = useState("");
   const [suPassword, setSuPassword] = useState("");
+  // Awaiting email confirmation
+  const [pendingEmail, setPendingEmail] = useState<string | null>(null);
 
   async function handleGoogle() {
     setBusy(true);
