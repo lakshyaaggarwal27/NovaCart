@@ -204,6 +204,7 @@ function AuthPage() {
             Continue with Google
           </Button>
         </div>
+        )}
 
         <p className="mt-6 text-center text-xs text-muted-foreground">
           By continuing you agree to our Terms and Privacy Policy.
