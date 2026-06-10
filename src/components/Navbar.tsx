@@ -102,6 +102,9 @@ export function Navbar() {
                   <Link to="/account">Account & shipping</Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
+                  <Link to="/orders">Orders</Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
                   <Link to="/wishlist">Wishlist</Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
