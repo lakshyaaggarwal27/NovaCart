@@ -7,6 +7,8 @@ import { Label } from "@/components/ui/label";
 import { findProduct, formatPrice } from "@/lib/products";
 import { useStore } from "@/lib/store";
 import { cn } from "@/lib/utils";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/lib/auth";
 
 export const Route = createFileRoute("/checkout")({
   head: () => ({ meta: [{ title: "Checkout — NovaCart" }] }),
