@@ -31,6 +31,7 @@ function CheckoutPage() {
   const navigate = useNavigate();
   const { cart, clearCart } = useStore();
   const { user } = useAuth();
+  const placeOrderServer = useServerFn(placeOrderFn);
   const [step, setStep] = useState<Step>(0);
   const [processing, setProcessing] = useState(false);
   const [form, setForm] = useState({
