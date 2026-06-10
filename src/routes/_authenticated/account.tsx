@@ -59,7 +59,10 @@ function AccountPage() {
     setSaving(true);
     const { error } = await supabase.from("profiles").update(profile).eq("id", user.id);
     setSaving(false);
-    if (error) return toast.error(error.message);
+    if (error) {
+      console.error("[account.save] update failed", error);
+      return toast.error("Could not save your profile. Please try again.");
+    }
     toast.success("Profile saved");
   }
 

@@ -7,8 +7,10 @@ import { Label } from "@/components/ui/label";
 import { findProduct, formatPrice } from "@/lib/products";
 import { useStore } from "@/lib/store";
 import { cn } from "@/lib/utils";
-import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
+import { useServerFn } from "@tanstack/react-start";
+import { placeOrder as placeOrderFn } from "@/lib/orders.functions";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/checkout")({
   head: () => ({ meta: [{ title: "Checkout — NovaCart" }] }),
@@ -29,6 +31,7 @@ function CheckoutPage() {
   const navigate = useNavigate();
   const { cart, clearCart } = useStore();
   const { user } = useAuth();
+  const placeOrderServer = useServerFn(placeOrderFn);
   const [step, setStep] = useState<Step>(0);
   const [processing, setProcessing] = useState(false);
   const [form, setForm] = useState({
@@ -67,36 +70,37 @@ function CheckoutPage() {
   const back = () => setStep((s) => Math.max(0, s - 1) as Step);
 
   const placeOrder = async () => {
-    setProcessing(true);
-    await new Promise((r) => setTimeout(r, 2400));
-    const orderId = `NV-${Math.random().toString(36).slice(2, 8).toUpperCase()}-${Date.now().toString().slice(-4)}`;
-    const invoice = `INV-${Date.now().toString().slice(-8)}`;
-    const ref = `PAY-${Math.random().toString(36).slice(2, 10).toUpperCase()}`;
-    const orderItems = items.map((i) => ({ id: i.id, title: i.product.title, qty: i.qty, price: i.product.price, image: i.product.image }));
-    const order = {
-      orderId,
-      invoice,
-      ref,
-      total,
-      items: orderItems,
-      address: { ...form },
-      placedAt: new Date().toISOString(),
-    };
-    sessionStorage.setItem("nv_last_order", JSON.stringify(order));
-    if (user) {
-      await supabase.from("orders").insert({
-        user_id: user.id,
-        order_number: orderId,
-        invoice,
-        payment_ref: ref,
-        total_cents: total,
-        items: orderItems,
-        shipping_address: { ...form },
-        placed_at: order.placedAt,
-      });
+    if (!user) {
+      toast.error("Please sign in to place your order.");
+      navigate({ to: "/auth" });
+      return;
     }
-    clearCart();
-    navigate({ to: "/success" });
+    setProcessing(true);
+    try {
+      await new Promise((r) => setTimeout(r, 1500));
+      const result = await placeOrderServer({
+        data: {
+          items: items.map((i) => ({ id: i.id, qty: i.qty })),
+          shipping_address: {
+            name: form.name,
+            email: form.email,
+            phone: form.phone,
+            address: form.address,
+            city: form.city,
+            zip: form.zip,
+            country: form.country,
+            payment: form.payment,
+          },
+        },
+      });
+      sessionStorage.setItem("nv_last_order", JSON.stringify(result));
+      clearCart();
+      navigate({ to: "/success" });
+    } catch (err) {
+      console.error(err);
+      toast.error("Could not place order. Please review your cart and try again.");
+      setProcessing(false);
+    }
   };
 
   return (
