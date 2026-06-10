@@ -72,16 +72,29 @@ function CheckoutPage() {
     const orderId = `NV-${Math.random().toString(36).slice(2, 8).toUpperCase()}-${Date.now().toString().slice(-4)}`;
     const invoice = `INV-${Date.now().toString().slice(-8)}`;
     const ref = `PAY-${Math.random().toString(36).slice(2, 10).toUpperCase()}`;
+    const orderItems = items.map((i) => ({ id: i.id, title: i.product.title, qty: i.qty, price: i.product.price, image: i.product.image }));
     const order = {
       orderId,
       invoice,
       ref,
       total,
-      items: items.map((i) => ({ id: i.id, title: i.product.title, qty: i.qty, price: i.product.price, image: i.product.image })),
+      items: orderItems,
       address: { ...form },
       placedAt: new Date().toISOString(),
     };
     sessionStorage.setItem("nv_last_order", JSON.stringify(order));
+    if (user) {
+      await supabase.from("orders").insert({
+        user_id: user.id,
+        order_number: orderId,
+        invoice,
+        payment_ref: ref,
+        total_cents: total,
+        items: orderItems,
+        shipping_address: { ...form },
+        placed_at: order.placedAt,
+      });
+    }
     clearCart();
     navigate({ to: "/success" });
   };
