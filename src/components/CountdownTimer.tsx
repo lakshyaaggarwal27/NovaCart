@@ -7,13 +7,16 @@ function nextEndOfDay() {
 }
 
 export function CountdownTimer() {
+  const [mounted, setMounted] = useState(false);
   const [target] = useState(nextEndOfDay);
   const [now, setNow] = useState(() => Date.now());
   useEffect(() => {
+    setMounted(true);
+    setNow(Date.now());
     const id = setInterval(() => setNow(Date.now()), 1000);
     return () => clearInterval(id);
   }, []);
-  const diff = Math.max(0, target - now);
+  const diff = mounted ? Math.max(0, target - now) : 0;
   const h = Math.floor(diff / 3_600_000);
   const m = Math.floor((diff % 3_600_000) / 60_000);
   const s = Math.floor((diff % 60_000) / 1000);
