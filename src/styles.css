@@ -100,26 +100,47 @@
 }
 
 .dark {
-  --background: oklch(0.13 0.03 260);
-  --foreground: oklch(0.98 0.005 240);
-  --card: oklch(0.18 0.04 260);
-  --card-foreground: oklch(0.98 0.005 240);
-  --popover: oklch(0.18 0.04 260);
-  --popover-foreground: oklch(0.98 0.005 240);
-  --primary: oklch(0.66 0.2 270);
-  --primary-foreground: oklch(0.13 0.03 260);
-  --primary-glow: oklch(0.72 0.18 275);
-  --secondary: oklch(0.22 0.04 260);
-  --secondary-foreground: oklch(0.98 0.005 240);
-  --muted: oklch(0.22 0.04 260);
-  --muted-foreground: oklch(0.7 0.03 256);
-  --accent: oklch(0.6 0.22 277);
-  --accent-foreground: oklch(0.99 0 0);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.66 0.2 270);
-  --navy: oklch(0.1 0.04 260);
-  --navy-foreground: oklch(0.98 0.005 240);
+  /* Layered dark surfaces — premium, not pure black */
+  --background: #020617;
+  --foreground: #F8FAFC;
+  --card: #111827;
+  --card-foreground: #F8FAFC;
+  --popover: #1E293B;
+  --popover-foreground: #F8FAFC;
+
+  --primary: #2563EB;
+  --primary-foreground: #F8FAFC;
+  --primary-glow: #06B6D4;
+
+  --secondary: #0F172A;
+  --secondary-foreground: #F8FAFC;
+
+  --muted: #1E293B;
+  --muted-foreground: #94A3B8;
+
+  --accent: #4F46E5;
+  --accent-foreground: #F8FAFC;
+
+  --success: #10B981;
+  --success-foreground: #F8FAFC;
+  --warning: #F59E0B;
+  --warning-foreground: #0F172A;
+  --destructive: #EF4444;
+  --destructive-foreground: #F8FAFC;
+
+  --border: color-mix(in oklab, #CBD5E1 14%, transparent);
+  --input: color-mix(in oklab, #CBD5E1 18%, transparent);
+  --ring: #2563EB;
+
+  --navy: #020617;
+  --navy-foreground: #F8FAFC;
+
+  --gradient-hero: linear-gradient(135deg, #020617 0%, #0F172A 45%, #1E1B4B 100%);
+  --gradient-primary: linear-gradient(135deg, #2563EB, #4F46E5);
+  --gradient-glow: radial-gradient(circle at 50% 0%, color-mix(in oklab, #2563EB 35%, transparent), transparent 70%);
+  --shadow-elegant: 0 20px 50px -20px color-mix(in oklab, #2563EB 50%, transparent);
+  --shadow-card: 0 4px 24px -8px rgba(0, 0, 0, 0.5);
+  --shadow-glow: 0 0 40px color-mix(in oklab, #06B6D4 35%, transparent);
 }
 
 @layer base {
@@ -138,6 +159,21 @@
   h1, h2, h3, h4, h5 {
     font-family: var(--font-display);
     letter-spacing: -0.02em;
+  }
+  /* Smooth 300ms theme transition for color-bearing properties */
+  body,
+  body * {
+    transition:
+      background-color 300ms ease,
+      border-color 300ms ease,
+      color 300ms ease,
+      fill 300ms ease,
+      stroke 300ms ease,
+      box-shadow 300ms ease;
+  }
+  /* Don't transition transforms / interactive motion */
+  body *:where(button, a, [role="button"]):hover {
+    transition-duration: 200ms;
   }
 }
 
