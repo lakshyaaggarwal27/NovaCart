@@ -17,6 +17,7 @@ import { ThemeProvider, themeInitScript } from "@/lib/theme";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { Toaster } from "@/components/ui/sonner";
+import { Orbit } from "@/components/Orbit";
 
 function NotFoundComponent() {
   return (
@@ -138,6 +139,7 @@ function RootComponent() {
               </main>
               <Footer />
             </div>
+            <Orbit />
             <Toaster richColors position="top-right" />
           </StoreProvider>
         </AuthProvider>
