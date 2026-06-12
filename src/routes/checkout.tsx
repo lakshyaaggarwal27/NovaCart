@@ -51,7 +51,7 @@ function CheckoutPage() {
     [cart],
   );
   const subtotal = items.reduce((s, i) => s + i.product.price * i.qty, 0);
-  const shipping = subtotal > 500 ? 0 : 19;
+  const shipping = subtotal > 4999 ? 0 : 199;
   const tax = Math.round(subtotal * 0.08);
   const total = subtotal + shipping + tax;
 
