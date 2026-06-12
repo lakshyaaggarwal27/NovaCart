@@ -297,15 +297,22 @@ const seeds: Seed[] = [
     specs: { Video: "1:1 1440p HDR", Detection: "Radar + AI", Storage: "iCloud / Local", Power: "Wired" } },
 ];
 
+// Convert seed USD price to a realistic INR price ending in ...99.
+function toInr(usd: number): number {
+  const raw = usd * 90;
+  return Math.max(99, Math.round(raw / 100) * 100 - 1);
+}
+
 function makeProduct(seed: Seed, idx: number): Product {
-  const original = Math.round(seed.price / (1 - seed.discount / 100));
+  const price = toInr(seed.price);
+  const original = Math.round(price / (1 - seed.discount / 100));
   return {
     id: `nv-${idx + 1}`,
     title: seed.title,
     brand: seed.brand,
     category: seed.category,
-    price: seed.price,
-    originalPrice: seed.discount > 0 ? original : seed.price,
+    price,
+    originalPrice: seed.discount > 0 ? original : price,
     rating: seed.rating,
     reviews: seed.reviews,
     stock: seed.stock,
@@ -320,5 +327,6 @@ export const products: Product[] = seeds.map(makeProduct);
 
 export const findProduct = (id: string) => products.find((p) => p.id === id);
 
+// Indian Rupee formatting with Indian digit grouping (e.g. ₹1,24,999).
 export const formatPrice = (n: number) =>
-  n.toLocaleString("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 });
+  n.toLocaleString("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 });

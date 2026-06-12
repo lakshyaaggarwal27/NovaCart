@@ -29,7 +29,7 @@ function CartPage() {
 
   const subtotal = items.reduce((s, i) => s + i.product.price * i.qty, 0);
   const discount = applied ? Math.round(subtotal * (applied.percent / 100)) : 0;
-  const shipping = subtotal > 500 || subtotal === 0 ? 0 : 19;
+  const shipping = subtotal > 4999 || subtotal === 0 ? 0 : 199;
   const tax = Math.round((subtotal - discount) * 0.08);
   const total = subtotal - discount + shipping + tax;
 
