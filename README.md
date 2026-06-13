@@ -231,8 +231,8 @@ B.Tech CSE Student | Aspiring Full-Stack Developer
 
 ### Connect With Me
 
-- LinkedIn: Add Your LinkedIn Profile
-- GitHub: Add Your GitHub Profile
+- LinkedIn: https://www.linkedin.com/in/lakshyaa-aggarwal/
+- GitHub: https://github.com/lakshyaaggarwal27
 
 ---
 
