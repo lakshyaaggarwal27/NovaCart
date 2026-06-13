@@ -297,22 +297,44 @@ const seeds: Seed[] = [
     specs: { Video: "1:1 1440p HDR", Detection: "Radar + AI", Storage: "iCloud / Local", Power: "Wired" } },
 ];
 
-// Convert seed USD price to a realistic INR price ending in ...99.
-function toInr(usd: number): number {
-  const raw = usd * 90;
-  return Math.max(99, Math.round(raw / 100) * 100 - 1);
+// Snap an INR amount to a clean Indian retail tier ending in ...99
+// (e.g. ₹2,499, ₹9,999, ₹24,999, ₹89,999, ₹1,49,999).
+function tierStep(n: number): number {
+  if (n < 5000) return 500;
+  if (n < 50000) return 1000;
+  if (n < 100000) return 5000;
+  return 10000;
+}
+function snapInrPrice(n: number): number {
+  const step = tierStep(n);
+  const snapped = Math.round(n / step) * step - 1;
+  return Math.max(step - 1, snapped);
+}
+function nextTier(n: number): number {
+  const step = tierStep(n + 1);
+  return n + step;
 }
 
 function makeProduct(seed: Seed, idx: number): Product {
-  const price = toInr(seed.price);
-  const original = Math.round(price / (1 - seed.discount / 100));
+  // Selling price: convert USD seed to INR and snap to a clean retail tier.
+  const price = snapInrPrice(seed.price * 90);
+  // Clamp discount into a believable 5–25% range when one is present.
+  const discountPct = seed.discount > 0
+    ? Math.min(25, Math.max(5, seed.discount))
+    : 0;
+  let originalPrice = price;
+  if (discountPct > 0) {
+    originalPrice = snapInrPrice(price / (1 - discountPct / 100));
+    // Guarantee MRP is strictly above the selling price after snapping.
+    while (originalPrice <= price) originalPrice = nextTier(originalPrice);
+  }
   return {
     id: `nv-${idx + 1}`,
     title: seed.title,
     brand: seed.brand,
     category: seed.category,
     price,
-    originalPrice: seed.discount > 0 ? original : price,
+    originalPrice,
     rating: seed.rating,
     reviews: seed.reviews,
     stock: seed.stock,
