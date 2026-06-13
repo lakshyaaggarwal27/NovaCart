@@ -1,9 +1,17 @@
 import { useEffect, useRef, useState } from "react";
-import { Minus, Orbit as OrbitIcon, RotateCcw, Send, X } from "lucide-react";
+import { Link } from "@tanstack/react-router";
+import { Minus, Orbit as OrbitIcon, RotateCcw, Send, Star, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { formatPrice, type Product } from "@/lib/products";
+import { recommend } from "@/lib/orbit-recommend";
 
-type Msg = { id: string; role: "user" | "orbit"; text: string };
+type Msg = {
+  id: string;
+  role: "user" | "orbit";
+  text: string;
+  products?: Product[];
+};
 
 const WELCOME: Msg = {
   id: "welcome",
@@ -20,18 +28,32 @@ const QUICK_ACTIONS = [
   { label: "❓ Shipping Information", prompt: "Shipping information" },
 ];
 
-const PLACEHOLDER_REPLY =
-  "Great question! Smart product recommendations and comparisons are landing in the next Orbit update. In the meantime, browse the catalog and I'll be ready to help you decide soon. 🚀";
-
 const SHIPPING_REPLY =
-  "We offer free standard shipping on orders over ₹999, with delivery in 3–5 business days. Express options are available at checkout. Detailed tracking ships with every order confirmation. 📦";
+  "We offer free standard shipping on orders over ₹4,999, with delivery in 3–5 business days. Express options are available at checkout. Detailed tracking ships with every order confirmation. 📦";
 
-function reply(prompt: string): string {
+const COMPARE_REPLY =
+  "Side-by-side product comparison is coming in the next Orbit update. For now, ask me things like \"best phone under ₹50,000\" and I'll recommend top picks from the catalog. ⚡";
+
+function buildReply(prompt: string): { text: string; products?: Product[] } {
   const p = prompt.toLowerCase();
-  if (p.includes("shipping")) return SHIPPING_REPLY;
-  if (p.includes("hi") || p.includes("hello") || p.includes("hey"))
-    return "Hey there! 👋 I'm Orbit. Ask me about products, deals, or shipping — and richer recommendations are coming soon.";
-  return PLACEHOLDER_REPLY;
+  if (p.includes("shipping") || p.includes("delivery") || p.includes("return")) {
+    return { text: SHIPPING_REPLY };
+  }
+  if (p.includes("compare")) {
+    return { text: COMPARE_REPLY };
+  }
+  if (/^(hi|hello|hey|yo|hola)\b/.test(p.trim())) {
+    return {
+      text:
+        "Hey there! 👋 I'm Orbit. Tell me what you're shopping for — try \"best laptop under ₹80,000\" or \"top rated headphones\".",
+    };
+  }
+  const rec = recommend(prompt);
+  if (rec) return { text: rec.text, products: rec.products };
+  return {
+    text:
+      "I can help you discover products from NovaCart. Try asking:\n• Best gaming laptop under ₹1,50,000\n• Top rated headphones\n• Recommend a smartwatch\n• Show trending products",
+  };
 }
 
 export function Orbit() {
@@ -62,9 +84,10 @@ export function Orbit() {
     setTyping(true);
     const delay = 600 + Math.min(1200, trimmed.length * 25);
     window.setTimeout(() => {
+      const reply = buildReply(trimmed);
       setMessages((m) => [
         ...m,
-        { id: `o-${Date.now()}`, role: "orbit", text: reply(trimmed) },
+        { id: `o-${Date.now()}`, role: "orbit", text: reply.text, products: reply.products },
       ]);
       setTyping(false);
     }, delay);
@@ -168,13 +191,31 @@ export function Orbit() {
                     >
                       <div
                         className={cn(
-                          "max-w-[85%] whitespace-pre-wrap rounded-2xl px-3.5 py-2.5 text-sm leading-relaxed shadow-sm",
-                          m.role === "user"
-                            ? "rounded-br-sm bg-primary text-primary-foreground"
-                            : "rounded-bl-sm bg-secondary text-secondary-foreground",
+                          "max-w-[90%] space-y-2",
+                          m.role === "user" ? "items-end" : "items-start",
                         )}
                       >
-                        {m.text}
+                        <div
+                          className={cn(
+                            "whitespace-pre-wrap rounded-2xl px-3.5 py-2.5 text-sm leading-relaxed shadow-sm",
+                            m.role === "user"
+                              ? "rounded-br-sm bg-primary text-primary-foreground"
+                              : "rounded-bl-sm bg-secondary text-secondary-foreground",
+                          )}
+                        >
+                          {m.text}
+                        </div>
+                        {m.products && m.products.length > 0 && (
+                          <div className="space-y-2">
+                            {m.products.map((p) => (
+                              <ProductRec
+                                key={p.id}
+                                product={p}
+                                onClick={() => setOpen(false)}
+                              />
+                            ))}
+                          </div>
+                        )}
                       </div>
                     </div>
                   ))}
@@ -235,5 +276,43 @@ export function Orbit() {
         </div>
       )}
     </>
+  );
+}
+
+function ProductRec({ product, onClick }: { product: Product; onClick?: () => void }) {
+  return (
+    <Link
+      to="/product/$id"
+      params={{ id: product.id }}
+      onClick={onClick}
+      className="flex gap-3 rounded-xl border bg-card p-2.5 shadow-sm transition-all hover:-translate-y-0.5 hover:border-primary hover:shadow-elegant"
+    >
+      <div className="h-16 w-16 shrink-0 overflow-hidden rounded-lg bg-muted">
+        <img
+          src={product.image}
+          alt={product.title}
+          loading="lazy"
+          className="h-full w-full object-cover"
+        />
+      </div>
+      <div className="min-w-0 flex-1">
+        <p className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
+          {product.brand}
+        </p>
+        <p className="truncate text-xs font-semibold leading-snug text-foreground">
+          {product.title}
+        </p>
+        <div className="mt-1 flex items-center justify-between gap-2">
+          <span className="text-sm font-bold text-foreground">{formatPrice(product.price)}</span>
+          <span className="flex items-center gap-0.5 text-[11px] font-medium text-muted-foreground">
+            <Star className="h-3 w-3 fill-warning text-warning" />
+            {product.rating}
+          </span>
+        </div>
+        <span className="mt-1 inline-block text-[11px] font-semibold text-primary">
+          View Product →
+        </span>
+      </div>
+    </Link>
   );
 }
