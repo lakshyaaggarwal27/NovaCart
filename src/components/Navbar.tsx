@@ -1,5 +1,6 @@
 import { Link } from "@tanstack/react-router";
-import { Heart, LogOut, Menu, Search, ShoppingBag, ShoppingCart, User, X } from "lucide-react";
+import { Heart, LogOut, Menu, Search, ShoppingBag, User, X } from "lucide-react";
+import novacartLogo from "@/assets/novacart-logo.png.asset.json";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
