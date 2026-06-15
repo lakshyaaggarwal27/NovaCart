@@ -218,6 +218,12 @@ export function Orbit() {
                             ))}
                           </div>
                         )}
+                        {m.comparison && (
+                          <ComparisonCard
+                            comparison={m.comparison}
+                            onNavigate={() => setOpen(false)}
+                          />
+                        )}
                       </div>
                     </div>
                   ))}
