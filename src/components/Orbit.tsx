@@ -89,7 +89,7 @@ export function Orbit() {
       const reply = buildReply(trimmed);
       setMessages((m) => [
         ...m,
-        { id: `o-${Date.now()}`, role: "orbit", text: reply.text, products: reply.products },
+        { id: `o-${Date.now()}`, role: "orbit", text: reply.text, products: reply.products, comparison: reply.comparison },
       ]);
       setTyping(false);
     }, delay);
