@@ -36,25 +36,27 @@ const SHIPPING_REPLY =
 const COMPARE_REPLY =
   "Side-by-side product comparison is coming in the next Orbit update. For now, ask me things like \"best phone under ₹50,000\" and I'll recommend top picks from the catalog. ⚡";
 
-function buildReply(prompt: string): { text: string; products?: Product[] } {
+function buildReply(prompt: string): { text: string; products?: Product[]; comparison?: Comparison } {
   const p = prompt.toLowerCase();
   if (p.includes("shipping") || p.includes("delivery") || p.includes("return")) {
     return { text: SHIPPING_REPLY };
   }
-  if (p.includes("compare")) {
-    return { text: COMPARE_REPLY };
+  const cmp = tryCompare(prompt);
+  if (cmp) {
+    if (cmp.ok) return { text: cmp.comparison.text, comparison: cmp.comparison };
+    return { text: cmp.text };
   }
   if (/^(hi|hello|hey|yo|hola)\b/.test(p.trim())) {
     return {
       text:
-        "Hey there! 👋 I'm Orbit. Tell me what you're shopping for — try \"best laptop under ₹80,000\" or \"top rated headphones\".",
+        "Hey there! 👋 I'm Orbit. Tell me what you're shopping for — try \"best laptop under ₹80,000\" or \"compare iPhone 17 Pro Max and Samsung Galaxy S26 Ultra\".",
     };
   }
   const rec = recommend(prompt);
   if (rec) return { text: rec.text, products: rec.products };
   return {
     text:
-      "I can help you discover products from NovaCart. Try asking:\n• Best gaming laptop under ₹1,50,000\n• Top rated headphones\n• Recommend a smartwatch\n• Show trending products",
+      "I can help you discover and compare products from NovaCart. Try asking:\n• Best gaming laptop under ₹1,50,000\n• Compare Sony WH-1000XM7 and AirPods Pro 3\n• Top rated headphones\n• Show trending products",
   };
 }
 
