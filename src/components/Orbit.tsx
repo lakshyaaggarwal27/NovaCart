@@ -33,8 +33,6 @@ const QUICK_ACTIONS = [
 const SHIPPING_REPLY =
   "We offer free standard shipping on orders over ₹4,999, with delivery in 3–5 business days. Express options are available at checkout. Detailed tracking ships with every order confirmation. 📦";
 
-const COMPARE_REPLY =
-  "Side-by-side product comparison is coming in the next Orbit update. For now, ask me things like \"best phone under ₹50,000\" and I'll recommend top picks from the catalog. ⚡";
 
 function buildReply(prompt: string): { text: string; products?: Product[]; comparison?: Comparison } {
   const p = prompt.toLowerCase();
