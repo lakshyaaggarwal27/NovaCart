@@ -324,3 +324,83 @@ function ProductRec({ product, onClick }: { product: Product; onClick?: () => vo
     </Link>
   );
 }
+
+function ComparisonCard({
+  comparison,
+  onNavigate,
+}: {
+  comparison: Comparison;
+  onNavigate?: () => void;
+}) {
+  const [a, b] = comparison.products;
+  return (
+    <div className="overflow-hidden rounded-xl border bg-card shadow-sm">
+      {/* Heads */}
+      <div className="grid grid-cols-2 divide-x border-b">
+        {[a, b].map((p) => (
+          <Link
+            key={p.id}
+            to="/product/$id"
+            params={{ id: p.id }}
+            onClick={onNavigate}
+            className="group flex flex-col items-center gap-1.5 p-2.5 text-center transition hover:bg-primary/5"
+          >
+            <div className="h-14 w-14 overflow-hidden rounded-lg bg-muted">
+              <img
+                src={p.image}
+                alt={p.title}
+                loading="lazy"
+                className="h-full w-full object-cover transition group-hover:scale-105"
+              />
+            </div>
+            <p className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
+              {p.brand}
+            </p>
+            <p className="line-clamp-2 text-[11px] font-semibold leading-tight text-foreground">
+              {p.title}
+            </p>
+          </Link>
+        ))}
+      </div>
+
+      {/* Rows */}
+      <div className="divide-y text-[11px]">
+        {comparison.rows.map((r) => (
+          <div key={r.key} className="grid grid-cols-[auto_1fr_1fr]">
+            <div className="bg-muted/40 px-2 py-1.5 font-medium text-muted-foreground">
+              {r.key}
+            </div>
+            <div className="px-2 py-1.5 text-foreground">{r.a}</div>
+            <div className="border-l px-2 py-1.5 text-foreground">{r.b}</div>
+          </div>
+        ))}
+      </div>
+
+      {/* Summary */}
+      {comparison.summary.length > 0 && (
+        <div className="space-y-1.5 border-t bg-muted/30 p-2.5">
+          {comparison.summary.map((s) => {
+            const winner = s.winner === a.id ? a : b;
+            return (
+              <div
+                key={s.label}
+                className="flex items-start gap-2 rounded-lg bg-card p-2 shadow-sm"
+              >
+                <span className="text-base leading-none">{s.emoji}</span>
+                <div className="min-w-0 flex-1">
+                  <p className="text-[11px] font-semibold text-foreground">
+                    {s.label}:{" "}
+                    <span className="text-primary">{winner.title}</span>
+                  </p>
+                  <p className="text-[10px] leading-snug text-muted-foreground">
+                    {s.reason}
+                  </p>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
