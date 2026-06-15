@@ -24,7 +24,7 @@ const WELCOME: Msg = {
 
 const QUICK_ACTIONS = [
   { label: "💻 Best Laptop Under ₹80,000", prompt: "Best laptop under ₹80,000" },
-  { label: "📱 Compare Phones", prompt: "Compare phones" },
+  { label: "⚖️ Compare iPhone vs Galaxy", prompt: "Compare iPhone 17 Pro Max and Samsung Galaxy S26 Ultra" },
   { label: "🎧 Recommend Headphones", prompt: "Recommend headphones" },
   { label: "🔥 Show Trending Products", prompt: "Show trending products" },
   { label: "❓ Shipping Information", prompt: "Shipping information" },
