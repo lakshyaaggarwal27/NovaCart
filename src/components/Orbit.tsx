@@ -5,12 +5,14 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { formatPrice, type Product } from "@/lib/products";
 import { recommend } from "@/lib/orbit-recommend";
+import { tryCompare, type Comparison } from "@/lib/orbit-compare";
 
 type Msg = {
   id: string;
   role: "user" | "orbit";
   text: string;
   products?: Product[];
+  comparison?: Comparison;
 };
 
 const WELCOME: Msg = {
@@ -22,7 +24,7 @@ const WELCOME: Msg = {
 
 const QUICK_ACTIONS = [
   { label: "💻 Best Laptop Under ₹80,000", prompt: "Best laptop under ₹80,000" },
-  { label: "📱 Compare Phones", prompt: "Compare phones" },
+  { label: "⚖️ Compare iPhone vs Galaxy", prompt: "Compare iPhone 17 Pro Max and Samsung Galaxy S26 Ultra" },
   { label: "🎧 Recommend Headphones", prompt: "Recommend headphones" },
   { label: "🔥 Show Trending Products", prompt: "Show trending products" },
   { label: "❓ Shipping Information", prompt: "Shipping information" },
@@ -31,28 +33,28 @@ const QUICK_ACTIONS = [
 const SHIPPING_REPLY =
   "We offer free standard shipping on orders over ₹4,999, with delivery in 3–5 business days. Express options are available at checkout. Detailed tracking ships with every order confirmation. 📦";
 
-const COMPARE_REPLY =
-  "Side-by-side product comparison is coming in the next Orbit update. For now, ask me things like \"best phone under ₹50,000\" and I'll recommend top picks from the catalog. ⚡";
 
-function buildReply(prompt: string): { text: string; products?: Product[] } {
+function buildReply(prompt: string): { text: string; products?: Product[]; comparison?: Comparison } {
   const p = prompt.toLowerCase();
   if (p.includes("shipping") || p.includes("delivery") || p.includes("return")) {
     return { text: SHIPPING_REPLY };
   }
-  if (p.includes("compare")) {
-    return { text: COMPARE_REPLY };
+  const cmp = tryCompare(prompt);
+  if (cmp) {
+    if (cmp.ok) return { text: cmp.comparison.text, comparison: cmp.comparison };
+    return { text: cmp.text };
   }
   if (/^(hi|hello|hey|yo|hola)\b/.test(p.trim())) {
     return {
       text:
-        "Hey there! 👋 I'm Orbit. Tell me what you're shopping for — try \"best laptop under ₹80,000\" or \"top rated headphones\".",
+        "Hey there! 👋 I'm Orbit. Tell me what you're shopping for — try \"best laptop under ₹80,000\" or \"compare iPhone 17 Pro Max and Samsung Galaxy S26 Ultra\".",
     };
   }
   const rec = recommend(prompt);
   if (rec) return { text: rec.text, products: rec.products };
   return {
     text:
-      "I can help you discover products from NovaCart. Try asking:\n• Best gaming laptop under ₹1,50,000\n• Top rated headphones\n• Recommend a smartwatch\n• Show trending products",
+      "I can help you discover and compare products from NovaCart. Try asking:\n• Best gaming laptop under ₹1,50,000\n• Compare Sony WH-1000XM7 and AirPods Pro 3\n• Top rated headphones\n• Show trending products",
   };
 }
 
@@ -87,7 +89,7 @@ export function Orbit() {
       const reply = buildReply(trimmed);
       setMessages((m) => [
         ...m,
-        { id: `o-${Date.now()}`, role: "orbit", text: reply.text, products: reply.products },
+        { id: `o-${Date.now()}`, role: "orbit", text: reply.text, products: reply.products, comparison: reply.comparison },
       ]);
       setTyping(false);
     }, delay);
@@ -216,6 +218,12 @@ export function Orbit() {
                             ))}
                           </div>
                         )}
+                        {m.comparison && (
+                          <ComparisonCard
+                            comparison={m.comparison}
+                            onNavigate={() => setOpen(false)}
+                          />
+                        )}
                       </div>
                     </div>
                   ))}
@@ -314,5 +322,85 @@ function ProductRec({ product, onClick }: { product: Product; onClick?: () => vo
         </span>
       </div>
     </Link>
+  );
+}
+
+function ComparisonCard({
+  comparison,
+  onNavigate,
+}: {
+  comparison: Comparison;
+  onNavigate?: () => void;
+}) {
+  const [a, b] = comparison.products;
+  return (
+    <div className="overflow-hidden rounded-xl border bg-card shadow-sm">
+      {/* Heads */}
+      <div className="grid grid-cols-2 divide-x border-b">
+        {[a, b].map((p) => (
+          <Link
+            key={p.id}
+            to="/product/$id"
+            params={{ id: p.id }}
+            onClick={onNavigate}
+            className="group flex flex-col items-center gap-1.5 p-2.5 text-center transition hover:bg-primary/5"
+          >
+            <div className="h-14 w-14 overflow-hidden rounded-lg bg-muted">
+              <img
+                src={p.image}
+                alt={p.title}
+                loading="lazy"
+                className="h-full w-full object-cover transition group-hover:scale-105"
+              />
+            </div>
+            <p className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
+              {p.brand}
+            </p>
+            <p className="line-clamp-2 text-[11px] font-semibold leading-tight text-foreground">
+              {p.title}
+            </p>
+          </Link>
+        ))}
+      </div>
+
+      {/* Rows */}
+      <div className="divide-y text-[11px]">
+        {comparison.rows.map((r) => (
+          <div key={r.key} className="grid grid-cols-[auto_1fr_1fr]">
+            <div className="bg-muted/40 px-2 py-1.5 font-medium text-muted-foreground">
+              {r.key}
+            </div>
+            <div className="px-2 py-1.5 text-foreground">{r.a}</div>
+            <div className="border-l px-2 py-1.5 text-foreground">{r.b}</div>
+          </div>
+        ))}
+      </div>
+
+      {/* Summary */}
+      {comparison.summary.length > 0 && (
+        <div className="space-y-1.5 border-t bg-muted/30 p-2.5">
+          {comparison.summary.map((s) => {
+            const winner = s.winner === a.id ? a : b;
+            return (
+              <div
+                key={s.label}
+                className="flex items-start gap-2 rounded-lg bg-card p-2 shadow-sm"
+              >
+                <span className="text-base leading-none">{s.emoji}</span>
+                <div className="min-w-0 flex-1">
+                  <p className="text-[11px] font-semibold text-foreground">
+                    {s.label}:{" "}
+                    <span className="text-primary">{winner.title}</span>
+                  </p>
+                  <p className="text-[10px] leading-snug text-muted-foreground">
+                    {s.reason}
+                  </p>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
   );
 }
