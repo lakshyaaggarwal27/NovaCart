@@ -5,12 +5,14 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { formatPrice, type Product } from "@/lib/products";
 import { recommend } from "@/lib/orbit-recommend";
+import { tryCompare, type Comparison } from "@/lib/orbit-compare";
 
 type Msg = {
   id: string;
   role: "user" | "orbit";
   text: string;
   products?: Product[];
+  comparison?: Comparison;
 };
 
 const WELCOME: Msg = {
