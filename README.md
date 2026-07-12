@@ -77,7 +77,6 @@ The project was developed using modern web technologies and AI-assisted developm
 
 - Git
 - GitHub
-- Lovable
 - AI-Assisted Development
 
 ---
